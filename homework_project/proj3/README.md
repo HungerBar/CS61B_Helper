@@ -1,165 +1,154 @@
 ## Design document for BYOW
 ### Introduction
-create an engine for generating explorable worlds   
+create an engine for generating explorable worlds  
 a 2D tile-based world exploration engine
-### Skeleton Code
-- TileEngine(No modification needed)
-  - `TERenderer.java`:contains rendering-related methods
-  - `TETile.java`:the typed used for representing tiles in the world
-  - `Tileset.java`:a library of provided tiles
-- core
-  - `AutograderBuddy.java`:test(simulate) without rendering
-  - `Main.java`:start the entire system;read command line arguments and call function in `word.java`
-  - `world.java`: __WORLD__
-- utils
-  - `FileUtiles.java`:deal with File
-  - `RandomUtiles.java`：Random engine
+__In fact,this document is a conclusion of my project,so there are lots of differences.__
 
-### World Generation
-#### Rules
+### Important Library
+#### `StdDraw`
+It has 3 main function
+1. accept keyboard-input
+2. accept mouses-input
+3. create a canvas, draw and show; 
+#### `Files`
+About reas files and write String into files
+#### `Random`
+use seed to build randomer
 
-__Valid__
-1. ~~2D grid, drawn using `TileEngine`~~
-2. ~~include distinct rooms hallways(may also include outdoor spaces)~~
-3. some rooms should be rectangular(other shape as well)
-4. generate hallways include turns and has moderate frequency(20%~)
-5. Dead-end hallways are not allowed 
-6. ~~rooms,hallways has distinctive wall~~
-7. Rooms and hallways should be connected(no gaps in the floor between adjacent rooms or hallways)
-8. All rooms should be reachable 
-9. floor tiles couldn't appear on the edge 
-10. populate above 50% of the world with rooms and hallways
+###  Project Skeleton
+#### `src/data`
+store the background music,and history files.
+#### `src/tileengine`
+About the render-methods:render the initialworld,buttons,hints
+but not contain the `StdDraw.show()`(it is quite important)
+You can also choose the GUI to finish this part.(Maybe,I'm not sure.)
+#### `src/utils`
+deal with the customized `Random` and `Files`.
 
-__Sufficient Random__
-1. pseudo-randomly generated 
-2. hallway's width == 1 (???)
+### tileengine
+#### TETile(provided)
+implement the `Tile` object,and some interesting methods(`toString() .etc`)
+#### TETile(provided)
+some tiles ,you can customize your tiles by attaching files(mine in the `/data`),or simply change the input para.
+#### TERenderer(provided)
+build a renderer,can draw the `TETile[][]` into to the canavas(not show)
+#### initTileWorld
+to obey the rule,you need to build a persudorandom word with a provided seed.
+`public static TETile[][] initTileWorld(int HEIGHT,int WIDTH,Long seed,...)`
+maybe nested private class:`house`
+#### Button
+implement the `Button` object(very similiar to the `Tile`),remenber to add some useful public static method.
+`public class Button`
+- `public void draw()` and `public void drawHilight()`
+- `public boolean iscontained()`
 
-#### Some Helper Object
-- Random:provide a engine (seed)
-- TETile[][] world
-`world[0][0]`: bottom-left
-`world[9][0]`: (9,0)
-before fill them in,calling `renderFram`:
-```
-  /**
-  * Initializes StdDraw parameters and launches the StdDraw window. w and h are the
-  * width and height of the world in number of tiles. If the TETile[][] array that you
-  * pass to renderFrame is smaller than this, then extra blank space will be left
-  * on the right and top edges of the frame. For example, if you select w = 60 and
-  * h = 30, this method will create a 60 tile wide by 30 tile tall window. If
-  * you then subsequently call renderFrame with a TETile[50][25] array, it will
-  * leave 10 tiles blank on the right side and 5 tiles blank on the top side. If
-  * you want to leave extra space on the left or bottom instead, use the other
-  * initializatiom method.
-  * @param w width of the window in tiles
-  * @param h height of the window in tiles.
-    */
-```
+`public static void setButtonForWelcomeMenu()`
+`public static void setButtonForGamestate()`
+......
+you can also draw the buttons with a one-to-one methods
+#### Menu()
+you need to draw your menu for every state.Remember to use the`StdDraw.clear()`.
+`public static void initWelcomeMenu()`
+`public static void initGamestate()` <-- in fact,we may not need this one.
+......
 
-#### TODO Summary
-TODO 1.1:figure out the orientation with a small sample programs (Valid1)
-TODO 1.2:find wonderful Tile set(Valid2,6)
-TODO 1.3:Normal World(Valid3,4,5,7,8,9,10;Sufficient Random2)
-TODO 1.4:support the new WORLD with a seed as input(Sufficient Random1)
-TODO 1.5:design a GUI
-TODO 1.6:support Create a new WORLD,open a WORLD,Quit
+### utils
+this part,implementation is not the keypiont,try to cover fellow problems:
+- how to save your play-history(or cache?)
+- how to save the gameworld into a file,what should the file contain?A seed?A index?
+- how to turn your file into the `TETile[][] world` or provide the necessary message.
+- use a seed or a randomer?
 
+### core
+the `core` can alse seperate into 2 part:
+- the GAME itself
+- the organization
 
-#### 1.1 figure out the orientation with a small sample programs
-The `TETile` object is used to represent a single tile in your world. A 2D array of tiles make up a
-board, and can be drawn to the screen using the `TERenderer` class.
-`TETile`
-- `TETile(char character, Color textColor, Color backgroundColor, String description,
-  String filepath, int id)// filepath isn't necessary`
-- `TETile(t,textcolor/character)//override the textcolor/char`
-- `draw(x,y)//draw the tile at (x,y)`
-- `TETile colorVariant(TETile t, int dr, int dg, int db, Random r)//返回轻微调色的tile`
-- `toString()`
-- `copyOf()`
-- `equals()//相同id的tile时相等`
+#### GAME
+this part is definitely the most important part.However,I have no interest in it.
+So,I mainly templement `movement()`,`socre`and `vision` to construct the GAME.
+In my BYOW,player only has 3*3 vision.After get 3 points by getting the keys(Or collect 3 Keys?),they 
+can easily win the game.
 
-`TErnederer`
-- `initialize(int w, int h, int xOff, int yOff)//initialize with deltaX deltaY,xOff yOff isn't necessary;If the TETile[][] array that you
-pass to renderFrame is smaller than this, then extra blank space will be left on the right and top edges of the frame. 
-By varying xOffset, yOffset, and the size of the screen when initialized, you can leave
-empty space in different places to leave room for other information, such as a GUI. 
-This method assumes that the xScale and yScale have been set such that the max x value is the width of the screen in tiles, 
-and the max y value is the height of  the screen in tiles.`
+##### vision
+To mimic the `vision`, I use a `TETile[][] darkworld`,which only the tile in vision is the same as the `world`(role except) and other tile == NOTHING. With customized `initTileWorld()`,the `key`and`exit` are both in vision.I also add `light` randomly to bright around.
 
-Answer:`/src/core/dullworld.java`
+##### movement()
+To mimic the `movement`, I draw the initial `darkword` first after every single effective `movement`,then draw the role(or player),and bright around.
+To cover the interactivity,`StdDraw` is useful.
+And it's intuitive to build a `private ... movementHelper(...)` to ​implement movement logic
 
-#### 1.2 find wonderful Tile set(Valid2,6)
-Source URL:[This](https://icons8.com/icons/set/wall-16x16)
+##### score
+Or call it:__Victory Conditions__.How to show the Victory as well as updating?Will U cache the score?
+Deside all the details even before beginning the hole project.
 
-`Tileset`
-- WALL![img.png](src/tileengine/MYPhotoTile/Wall_img.png)
-- Floor![img.png](src/tileengine/MYPhotoTile/Floor_img.png)
-- Grass![Grass_img.png](src/tileengine/MYPhotoTile/Grass_img.png)
-- Water![River_img.png](src/tileengine/MYPhotoTile/River_img.png)
-- Flower![Flower_img.png](src/tileengine/MYPhotoTile/Flower_img.png)
-- Lockdoor![LockDoor_img.png](src/tileengine/MYPhotoTile/LockDoor_img.png)
-- Unlockdoor![UnlockDoor_img.png](src/tileengine/MYPhotoTile/UnlockDoor_img.png)
-- Tree![Tree_img.png](src/tileengine/MYPhotoTile/Tree_img.png)
-- Road![Road_img.png](src/tileengine/MYPhotoTile/Road_img.png)
+#### Organization
+This part is the most difficult for me.
+A GAME is __TOO DIFFICULT__ to implement considering the complexity.
+How to implement such `demanded redirected`?
 
-Answer:`/src/cor/dullworld.java`
+##### Finite State Machine(FSM)
+This is my solution.Maybe not the most simplest, but it is highly-structed,and definitely complex enough to tackle this Problem.
+Try to attach a `history` to every `state`,it is possible to finish the `undo`(However,i don't implement the generarily undo).
 
-#### 1.3 Normal World(Valid3,4,5,7,8,9,10;Sufficient Random2)
-1. initialize the world with NOTHING
+##### My FSM
+Try to define a enum to save all the state.(mine are in `GameState.java`)
+1. Welcom Menu:open my `world`;open a brand new `world`;open history;quit
+2. Gamestate: designed for interacting;enter `settings`
+3. settings: back to `GameState`;save the current `world`;back the `Welcom Menu`;
+I also designed a backdoor for fun.
+4. History: deal with choosing the history.
 
-use `initialWithNothing` method
+__My Advise__:Even though take every thing as a STATE is clear,but adding a STATE in fact is a annoying thing.Becase you have to add a `case` to all relative `switch()`.__​So add a STATE only when necessary.​​__ For example,I didn't add a STATE for _name the file when saving_.Because u will only enter that page after click the `Save Button`.
 
----
-2. Random create rectangular room
-
-use `buildHouse` method  
-randomly choose a dot(x,y) as the left-bottom of the house ,randomly generate the width and height
----
-3.use hallways to connect
-connect the house with `buildRoad`
-
----
-4.create the door
-
-
-change the tile that connect the road into open door   
-lock it if it has a unlocked neighbor  
-change all the road-tile into step if its
-roadNeighborCount(x,y) ==1 || (roadNeighborCount(x,y) == 0 && stepNeighborCount(x,y)==1))&& doorNeighborCount(x,y) ==1  
-open all the door that stepNeighbor >=1;
-clean the Step 
-then we can ensure the connectivity
-
-__However__
-the way we build the road is not elegant.It is complex and the road is ugly.   
-The maybe __improvement__:
-add more detail into the `house` object   
-and use the Minimum Spanning Tree (MST) to build the road Maybe better  
-one __question__: MST_Road maybe too sprase,so how to __balance__ is the key point;
-
----
-5. fill the Nothing with Water,Flower,Tree,Grass(randomly)
-
-use `buildAttaches` method
-
-##### key methods
+And the main part of my project is below
 ```java
-public void initialGenerateWorld() {
-       world = initialWithNothing();
-       randomHouseAndRoad();
-       cleanSingleRoad();
-       buildDoor();
-       buildStep();
-       openDoor();
-       cleanStep();
-       buildwall();
-       buildAttaches();
+public static void main(String[] args) {
+        new main().run();
     }
+
+public void run(){
+
+  initialize();
+
+  AudioPlayer.playBackgroundMusic("/data/backgroundmusic.wav");
+
+  gameLoop();
+
+}
+
+private void gameLoop() {
+        final int TARGET_FPS = 60;
+        final long FRAME_TIME_MS = 1000 / TARGET_FPS;
+
+        while (true) {
+            long frameStart = System.currentTimeMillis();
+
+            //使用renderer相关函数渲染
+            render();
+
+            // 1. 处理输入
+            int status = handleInput();
+
+            // 2. 更新游戏状态
+            update(status);
+
+            // 3.支持一个奇怪的undo
+            if (StdDraw.isKeyPressed(KeyEvent.VK_ESCAPE)) {
+                if(stateHistory.isEmpty()){
+                   transitionTo(GameState.WELCOME_MENU);
+                }else{
+                    goBack();
+                    StdDraw.pause(200);
+                }
+            }
+
+            // 4. 控制帧率
+            long elapsed = System.currentTimeMillis() - frameStart;
+            if (elapsed < FRAME_TIME_MS) {
+                StdDraw.pause((int)(FRAME_TIME_MS - elapsed));
+            }
+        }
+    }
+
 ```
-
-#### TODO 1.4:support the new WORLD with a seed as input(Sufficient Random1)
-write a method:accept the seed,generate the random,generate.
-Answer:`Main/randomWorldBuilder` method
-
-#### TODO 1.5:design a GUI
-
